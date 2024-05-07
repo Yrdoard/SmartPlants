@@ -21,8 +21,8 @@ class _NavBarState extends State<NavBar>{
     Widget build(BuildContext context) {
       return Scaffold(
         body: [
-          HomePages(),
-          JadwalPage(),
+          const HomePages(),
+          const JadwalPage(),
         ][selectedIndex],
         bottomNavigationBar: NavigationBar(
           height: 60,
@@ -36,12 +36,12 @@ class _NavBarState extends State<NavBar>{
           destinations: [
             NavigationDestination(
               selectedIcon: Icon(Icons.home,color: Theme.of(context).primaryColor),
-              icon: Icon(Icons.home_outlined,color: Colors.grey),
+              icon: const Icon(Icons.home_outlined,color: Colors.grey),
               label: 'Beranda',
             ),
             NavigationDestination(
               selectedIcon: Icon(Icons.date_range,color: Theme.of(context).primaryColor),
-              icon: Icon(Icons.date_range_outlined,color: Colors.grey),
+              icon: const Icon(Icons.date_range_outlined,color: Colors.grey),
               label:'Jadwal',
             ),
           ],
