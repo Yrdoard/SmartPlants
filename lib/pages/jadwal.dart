@@ -2,7 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sleek_circular_slider/sleek_circular_slider.dart';
+import 'package:time_picker_spinner/time_picker_spinner.dart';
+
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 
@@ -15,9 +18,21 @@ class JadwalPage extends StatefulWidget {
   State <JadwalPage> createState() => _JadwalPage();
 }
 class _JadwalPage extends State<JadwalPage> {
-  double pro = 0;
-  bool click1 = true;
-  TimeOfDay _timeOfDay = TimeOfDay.now();
+  double pro = 0.0;
+  double temppro = 0.0;
+  DateTime _selectedDate = DateTime.now();
+  // TimeOfDay _timeOfDay = TimeOfDay.now();
+  // TimeOfDay  tempTime = TimeOfDay.now();
+  List<bool> isPressed = [false, false, false, false, false, false, false];
+  List<String> labels = ['S', 'S', 'R', 'K', 'J', 'S', 'M'];
+  String savedTimeText = '';
+  String output = '';
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    savedTimeText = '${now.hour}:${now.minute}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +57,6 @@ class _JadwalPage extends State<JadwalPage> {
                   ),
                   const JstackW(),
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       Container(
@@ -67,20 +81,18 @@ class _JadwalPage extends State<JadwalPage> {
                           children: [
                             Text('Waktu',style: Theme.of(context).textTheme.headline2),
                             const SizedBox(height: 3),
-                            Text(_timeOfDay.format(context).toString(),
-                              style: Theme.of(context).textTheme.bodyText1
-                            ),
+                            Text(savedTimeText,
+                                style: Theme.of(context).textTheme.bodyText1),
                           ],
                         ),
                       ),
                       Container(
-                        width: MediaQuery.of(context).size.width - 240,
+                        width: 120,
                         height: 60,
                         margin: const EdgeInsets.only(top: 54),
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                            color:
-                            Theme.of(context).cardColor,
+                            color: Colors.white,
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.3),
@@ -91,16 +103,26 @@ class _JadwalPage extends State<JadwalPage> {
                             ],
                             borderRadius: BorderRadius.circular(15)
                         ),
-                        child: Column(
-                          children: [
-                            Text('kelembapan',style: Theme.of(context).textTheme.headline2),
-                            const SizedBox(height: 3),
-                            Text("$pro%",
-                              style: Theme.of(context).textTheme.bodyText1
-                            ),
-                          ],
-                        ),
-                      )
+                        child: FutureBuilder<double>(
+                          future: () async {
+                            SharedPreferences prefs = await SharedPreferences.getInstance();
+                            return prefs.getDouble('pro') ?? 0.0;
+                          }(),
+                          builder: (BuildContext context, AsyncSnapshot<double> snapshot){
+                            if (snapshot.connectionState == ConnectionState.waiting){
+                              return  CircularProgressIndicator();
+                            } else{
+                              return Column(
+                                children: [
+                                  Text('Kelembapan',style: Theme.of(context).textTheme.headline2,),
+                                  const SizedBox(height: 3),
+                                  Text('${snapshot.data?.toInt() == 0 ? 0 : (snapshot.data?.toInt() ?? 0) + 1}%',style: Theme.of(context).textTheme.bodyText1,),
+                                ],
+                              );
+                            }
+                          },
+                        )
+                      ),
                     ],
                   ),
                   Container(
@@ -109,7 +131,7 @@ class _JadwalPage extends State<JadwalPage> {
                     margin: const EdgeInsets.only(top: 38, bottom: 60),
                     padding: const EdgeInsets.only(top: 5),
                     decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor,
+                        color: Colors.white,
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.3),
@@ -122,44 +144,23 @@ class _JadwalPage extends State<JadwalPage> {
                     ),
                     child: Column(
                       children: [
-                        Text('Hari',style: Theme.of(context).textTheme.headline3,),
-                        const Row(
-                          children: [
-                            // Container(
-                            //   margin: EdgeInsets.only(left: 0),
-                            //   height: 40,
-                            //   width: 40,
-                            //   decoration: BoxDecoration(
-                            //     borderRadius: BorderRadius.circular(0)
-                            //   ),
-                            //   child: ElevatedButton(
-                            //     onPressed: (){
-                            //       setState(() {
-                            //         click1 = !click1;
-                            //       });
-                            //     },
-                            //       style: ButtonStyle(
-                            //         shape: MaterialStateProperty.all(
-                            //           RoundedRectangleBorder(borderRadius: BorderRadius.circular(20),
-                            //             side: BorderSide(
-                            //               width: 2,
-                            //               color: Colors.white
-                            //             )
-                            //           )
-                            //         ),
-                            //         backgroundColor: MaterialStateProperty.all((click1 == false)? Colors.green : Colors.white)
-                            //         // backgroundColor: (click1 == false)? Colors.green : Colors.white,
-                            //       ),
-                            //     child: Column(
-                            //       crossAxisAlignment: CrossAxisAlignment.center,
-                            //       mainAxisAlignment: MainAxisAlignment.center,
-                            //       children: [
-                            //         Text('S',style: Theme.of(context).textTheme.headline2),
-                            //       ],
-                            //     ),
-                            //     ),
-                            //   ),
-                          ],
+                        Text('Hari',style: Theme.of(context).textTheme.headline2,),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: List.generate(7, (index) {
+                            return Container(
+                              width: 30,
+                              height: 30,
+                              decoration: BoxDecoration(
+                                color: isPressed[index] ? Theme.of(context).primaryColor : Colors.white,
+                                border: Border.all(color: Theme.of(context).primaryColor, width: 2),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Center(
+                                child: Text(labels[index], style: TextStyle(color: isPressed[index] ? Colors.white : Theme.of(context).primaryColor, fontSize: 15, fontWeight: FontWeight.w700,)),
+                              ),
+                            );
+                          }),
                         )
                       ],
                     ),
@@ -208,12 +209,12 @@ class _JadwalPage extends State<JadwalPage> {
                                                     crossAxisAlignment: CrossAxisAlignment.center,
                                                     children: [
                                                       Container(
-                                                        height: 140,
+                                                        height: MediaQuery.of(context).size.width - 220,
                                                         width: 120,
                                                         margin: const EdgeInsets.only(top: 5),
-                                                        padding: const EdgeInsets.only(top: 22),
+                                                        padding: const EdgeInsets.only(top: 5),
                                                         decoration: BoxDecoration(
-                                                            color: Theme.of(context).cardColor,
+                                                            color: Theme.of(context).primaryColor,
                                                             boxShadow: [
                                                               BoxShadow(
                                                                 color: Colors.black.withOpacity(0.3),
@@ -226,48 +227,49 @@ class _JadwalPage extends State<JadwalPage> {
                                                         ),
                                                         child: Column(
                                                               children: [
-                                                                Text(
-                                                                  _timeOfDay.format(context).toString(),
-                                                                  style: const TextStyle(
-                                                                      color: Color.fromARGB(255, 103, 239, 108),
-                                                                      fontSize: 30,
-                                                                      fontWeight: FontWeight.w700
-                                                                  ),
-                                                                ),
+                                                                Text('Atur Waktu',style: Theme.of(context).textTheme.headline3),
                                                                 SizedBox(
-                                                                  height: 15,
+                                                                  height: 10,
                                                                 ),
                                                                 Container(
-                                                                  width: 88,
-                                                                  height: 30,
+                                                                  width: MediaQuery.of(context).size.width - 250,
+                                                                  height: 100,
                                                                   decoration: BoxDecoration(
-                                                                      color: Theme.of(context).cardColor,
+                                                                      color: Colors.white,
                                                                       borderRadius: BorderRadius.circular(15),
                                                                       border: Border.all(color: Theme.of(context).primaryColor, width: 2)
                                                                   ),
-                                                                  child: FloatingActionButton(
-                                                                    onPressed: (){
-                                                                      showTimePicker(
-                                                                        context: context,
-                                                                        initialTime: _timeOfDay,
-                                                                      ).then((value) {
-                                                                        setState(() {
-                                                                          _timeOfDay = value!;
-                                                                        });
-                                                                      }
-                                                                      );
+                                                                  child: TimePickerSpinner(
+                                                                    is24HourMode: true,
+                                                                    alignment: Alignment.center,
+                                                                    spacing: 10,
+                                                                    highlightedTextStyle: TextStyle(
+                                                                      fontSize: 18,
+                                                                      color: Color.fromARGB(255, 0, 111, 18),
+                                                                    ),
+                                                                    normalTextStyle: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.grey,
+                                                                    ),
+                                                                    time: _selectedDate,
+                                                                    onTimeChange: (time) {
+                                                                      setState(() {
+                                                                        _selectedDate = time;
+                                                                      });
                                                                     },
-                                                                    child: Text('Atur Waktu',style: Theme.of(context).textTheme.headline2,),
+                                                                    itemWidth: 25,
+                                                                    itemHeight: 25,
+                                                                    isForce2Digits: true,
                                                                   ),
                                                                 )
                                                               ],
                                                             )
                                                       ),
                                                       Container(
-                                                          width: 140,
+                                                          width: MediaQuery.of(context).size.width - 220,
                                                           height: 140,
                                                           padding: const EdgeInsets.only(top: 5),
-                                                          margin: const EdgeInsets.only(left: 5),
+                                                          margin: const EdgeInsets.only(top: 5),
                                                           decoration: BoxDecoration(
                                                               color: Theme.of(context).primaryColor,
                                                               boxShadow: [
@@ -309,7 +311,12 @@ class _JadwalPage extends State<JadwalPage> {
                                                                 ),
                                                                 initialValue: pro,
                                                                 max: 100,
-                                                                onChange: (value){
+                                                                onChange: (double value) async {
+                                                                  setState(() {
+                                                                    temppro = value;
+                                                                  });
+                                                                  SharedPreferences prefs = await SharedPreferences.getInstance();
+                                                                  await prefs.setDouble('pro', pro);
                                                                 },
                                                               ),
                                                             ],
@@ -321,7 +328,7 @@ class _JadwalPage extends State<JadwalPage> {
                                               )
                                           ),
                                           Container(
-                                            width: MediaQuery.of(context).size.width - 60,
+                                            width: MediaQuery.of(context).size.width - 80,
                                             height: 100,
                                             margin: const EdgeInsets.only(top: 18, bottom: 50),
                                             padding: const EdgeInsets.only(top: 5),
@@ -345,276 +352,48 @@ class _JadwalPage extends State<JadwalPage> {
                                                 ),
                                                 Row(
                                                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                                  children: [
-                                                    StatefulBuilder(
-                                                      builder: (BuildContext context, StateSetter setState){
+                                                  children: List.generate(7, (index) {
+                                                    return StatefulBuilder(
+                                                      builder: (BuildContext context, StateSetter setState) {
                                                         return Container(
-                                                          margin: const EdgeInsets.only(left: 0),
-                                                          height: 40,
-                                                          width: 40,
-                                                          decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius.circular(0)
-                                                          ),
+                                                          width: 30,
+                                                          height: 30,
                                                           child: ElevatedButton(
-                                                            onPressed: (){
+                                                            style: ButtonStyle(
+                                                                backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                                                                      (Set<MaterialState> states) {
+                                                                    if (states.contains(MaterialState.pressed) || isPressed[index])
+                                                                      return Theme.of(context).primaryColor;
+                                                                    return Colors.white;
+                                                                  },
+                                                                ),
+                                                                foregroundColor: MaterialStateProperty.resolveWith<Color>(
+                                                                      (Set<MaterialState> states) {
+                                                                    if (states.contains(MaterialState.pressed) || isPressed[index])
+                                                                      return Colors.white;
+                                                                    return Colors.black;
+                                                                  },
+                                                                ),
+                                                                padding: MaterialStateProperty.all(EdgeInsets.zero),
+                                                                shape: MaterialStateProperty.all<CircleBorder>(
+                                                                    CircleBorder(
+                                                                        side: BorderSide(color: Theme.of(context).primaryColor)
+                                                                    )
+                                                                )
+                                                            ),
+                                                            onPressed: () {
                                                               setState(() {
-                                                                click1 = !click1;
+                                                                isPressed[index] = !isPressed[index];
+                                                                output = labels[index];
                                                               });
                                                             },
-                                                            style: ButtonStyle(
-                                                                shape: MaterialStateProperty.all(
-                                                                    RoundedRectangleBorder(borderRadius: BorderRadius.circular(20),
-                                                                        side: const BorderSide(
-                                                                            width: 2,
-                                                                            color: Colors.white
-                                                                        )
-                                                                    )
-                                                                ),
-                                                                backgroundColor: MaterialStateProperty.all((click1 == false)? Colors.green : Colors.white)
-                                                              // backgroundColor: (click1 == false)? Colors.green : Colors.white,
-                                                            ),
-                                                            child: const Column(
-                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                              mainAxisAlignment: MainAxisAlignment.center,
-                                                              children: [
-                                                                // Text('S',style: Theme.of(context).textTheme.headline2),
-                                                              ],
-                                                            ),
+                                                            child: Text(labels[index]),
                                                           ),
                                                         );
                                                       },
-                                                    ),
-                                                    StatefulBuilder(
-                                                      builder: (BuildContext context, StateSetter setState){
-                                                        return Container(
-                                                          margin: const EdgeInsets.only(left: 0),
-                                                          height: 40,
-                                                          width: 40,
-                                                          decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius.circular(0)
-                                                          ),
-                                                          child: ElevatedButton(
-                                                            onPressed: (){
-                                                              setState(() {
-                                                                click1 = !click1;
-                                                              });
-                                                            },
-                                                            style: ButtonStyle(
-                                                                shape: MaterialStateProperty.all(
-                                                                    RoundedRectangleBorder(borderRadius: BorderRadius.circular(20),
-                                                                        side: const BorderSide(
-                                                                            width: 2,
-                                                                            color: Colors.white
-                                                                        )
-                                                                    )
-                                                                ),
-                                                                backgroundColor: MaterialStateProperty.all((click1 == false)? Colors.green : Colors.white)
-                                                              // backgroundColor: (click1 == false)? Colors.green : Colors.white,
-                                                            ),
-                                                            child: const Column(
-                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                              mainAxisAlignment: MainAxisAlignment.center,
-                                                              children: [
-                                                                // Text('S',style: Theme.of(context).textTheme.headline2),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        );
-                                                      },
-                                                    ),
-                                                    StatefulBuilder(
-                                                      builder: (BuildContext context, StateSetter setState){
-                                                        return Container(
-                                                          margin: const EdgeInsets.only(left: 0),
-                                                          height: 40,
-                                                          width: 40,
-                                                          decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius.circular(0)
-                                                          ),
-                                                          child: ElevatedButton(
-                                                            onPressed: (){
-                                                              setState(() {
-                                                                click1 = !click1;
-                                                              });
-                                                            },
-                                                            style: ButtonStyle(
-                                                                shape: MaterialStateProperty.all(
-                                                                    RoundedRectangleBorder(borderRadius: BorderRadius.circular(20),
-                                                                        side: const BorderSide(
-                                                                            width: 2,
-                                                                            color: Colors.white
-                                                                        )
-                                                                    )
-                                                                ),
-                                                                backgroundColor: MaterialStateProperty.all((click1 == false)? Colors.green : Colors.white)
-                                                              // backgroundColor: (click1 == false)? Colors.green : Colors.white,
-                                                            ),
-                                                            child: const Column(
-                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                              mainAxisAlignment: MainAxisAlignment.center,
-                                                              children: [
-                                                                // Text('S',style: Theme.of(context).textTheme.headline2),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        );
-                                                      },
-                                                    ),
-                                                    StatefulBuilder(
-                                                      builder: (BuildContext context, StateSetter setState){
-                                                        return Container(
-                                                          margin: const EdgeInsets.only(left: 0),
-                                                          height: 40,
-                                                          width: 40,
-                                                          decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius.circular(0)
-                                                          ),
-                                                          child: ElevatedButton(
-                                                            onPressed: (){
-                                                              setState(() {
-                                                                click1 = !click1;
-                                                              });
-                                                            },
-                                                            style: ButtonStyle(
-                                                                shape: MaterialStateProperty.all(
-                                                                    RoundedRectangleBorder(borderRadius: BorderRadius.circular(20),
-                                                                        side: const BorderSide(
-                                                                            width: 2,
-                                                                            color: Colors.white
-                                                                        )
-                                                                    )
-                                                                ),
-                                                                backgroundColor: MaterialStateProperty.all((click1 == false)? Colors.green : Colors.white)
-                                                              // backgroundColor: (click1 == false)? Colors.green : Colors.white,
-                                                            ),
-                                                            child: const Column(
-                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                              mainAxisAlignment: MainAxisAlignment.center,
-                                                              children: [
-                                                                // Text('S',style: Theme.of(context).textTheme.headline2),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        );
-                                                      },
-                                                    ),
-                                                    StatefulBuilder(
-                                                      builder: (BuildContext context, StateSetter setState){
-                                                        return Container(
-                                                          margin: const EdgeInsets.only(left: 0),
-                                                          height: 40,
-                                                          width: 40,
-                                                          decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius.circular(0)
-                                                          ),
-                                                          child: ElevatedButton(
-                                                            onPressed: (){
-                                                              setState(() {
-                                                                click1 = !click1;
-                                                              });
-                                                            },
-                                                            style: ButtonStyle(
-                                                                shape: MaterialStateProperty.all(
-                                                                    RoundedRectangleBorder(borderRadius: BorderRadius.circular(20),
-                                                                        side: const BorderSide(
-                                                                            width: 2,
-                                                                            color: Colors.white
-                                                                        )
-                                                                    )
-                                                                ),
-                                                                backgroundColor: MaterialStateProperty.all((click1 == false)? Colors.green : Colors.white)
-                                                              // backgroundColor: (click1 == false)? Colors.green : Colors.white,
-                                                            ),
-                                                            child: const Column(
-                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                              mainAxisAlignment: MainAxisAlignment.center,
-                                                              children: [
-                                                                // Text('S',style: Theme.of(context).textTheme.headline2),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        );
-                                                      },
-                                                    ),
-                                                    StatefulBuilder(
-                                                      builder: (BuildContext context, StateSetter setState){
-                                                        return Container(
-                                                          margin: const EdgeInsets.only(left: 0),
-                                                          height: 40,
-                                                          width: 40,
-                                                          decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius.circular(0)
-                                                          ),
-                                                          child: ElevatedButton(
-                                                            onPressed: (){
-                                                              setState(() {
-                                                                click1 = !click1;
-                                                              });
-                                                            },
-                                                            style: ButtonStyle(
-                                                                shape: MaterialStateProperty.all(
-                                                                    RoundedRectangleBorder(borderRadius: BorderRadius.circular(20),
-                                                                        side: const BorderSide(
-                                                                            width: 2,
-                                                                            color: Colors.white
-                                                                        )
-                                                                    )
-                                                                ),
-                                                                backgroundColor: MaterialStateProperty.all((click1 == false)? Colors.green : Colors.white)
-                                                              // backgroundColor: (click1 == false)? Colors.green : Colors.white,
-                                                            ),
-                                                            child: const Column(
-                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                              mainAxisAlignment: MainAxisAlignment.center,
-                                                              children: [
-                                                                // Text('S',style: Theme.of(context).textTheme.headline2),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        );
-                                                      },
-                                                    ),
-                                                    StatefulBuilder(
-                                                      builder: (BuildContext context, StateSetter setState){
-                                                        return Container(
-                                                          margin: const EdgeInsets.only(left: 0),
-                                                          height: 40,
-                                                          width: 40,
-                                                          decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius.circular(0)
-                                                          ),
-                                                          child: ElevatedButton(
-                                                            onPressed: (){
-                                                              setState(() {
-                                                                click1 = !click1;
-                                                              });
-                                                            },
-                                                            style: ButtonStyle(
-                                                                shape: MaterialStateProperty.all(
-                                                                    RoundedRectangleBorder(borderRadius: BorderRadius.circular(20),
-                                                                        side: const BorderSide(
-                                                                            width: 2,
-                                                                            color: Colors.white
-                                                                        )
-                                                                    )
-                                                                ),
-                                                                backgroundColor: MaterialStateProperty.all((click1 == false)? Colors.green : Colors.white)
-                                                              // backgroundColor: (click1 == false)? Colors.green : Colors.white,
-                                                            ),
-                                                            child: const Column(
-                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                              mainAxisAlignment: MainAxisAlignment.center,
-                                                              children: [
-                                                                // Text('S',style: Theme.of(context).textTheme.headline2),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        );
-                                                      },
-                                                    ),
-                                                  ],
-                                                )
+                                                    );
+                                                  }),
+                                                ),
                                               ],
                                             ),
                                           ),
@@ -645,14 +424,27 @@ class _JadwalPage extends State<JadwalPage> {
                                                   borderRadius: BorderRadius.circular(20),
                                                 ),
                                                 child: ElevatedButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(context);
-                                                  },
-                                                  child: const Text('Simpan',style: TextStyle(color: Colors.white),),
-                                                  style: ButtonStyle(
-                                                    backgroundColor: MaterialStateProperty.all(Theme.of(context).primaryColor),
+                                                    onPressed: () async {
+                                                      SharedPreferences prefs = await SharedPreferences.getInstance();
+                                                      await prefs.setDouble('pro', temppro);
+                                                      await prefs.setInt('selectedHour', _selectedDate.hour);
+                                                      await prefs.setInt('selectedMinute', _selectedDate.minute);
+                                                      // await prefs.setString('pickedTime', tempTime.format(context));
+                                                      await prefs.setString('output', output);
+                                                      setState(() {
+                                                        savedTimeText = '${_selectedDate.hour}:${_selectedDate.minute}';
+                                                        pro = temppro;
+                                                        // _timeOfDay = tempTime;
+                                                        int index = isPressed.indexWhere((element) => element == true);
+                                                        if (index != -1) {
+                                                          output = labels[index];
+                                                        } else {
+                                                          output = '';
+                                                        }
+                                                      });
+                                                    },
+                                                    child: const Text('Simpan', style: TextStyle(color: Colors.white,),)
                                                   ),
-                                                ),
                                               )
                                             ],
                                           ),
@@ -665,7 +457,8 @@ class _JadwalPage extends State<JadwalPage> {
                         child: Column(
                           children: [
                             const Icon(Icons.add,size: 36,),
-                            Text('Atur Jadwal',style: Theme.of(context).textTheme.headline2)
+                            Text('Atur Jadwal',style:
+                            TextStyle(color: Color.fromARGB(255, 103, 239, 108), fontSize: 11, fontWeight: FontWeight.w500,),)
                           ],
                         ),
                       )
@@ -678,18 +471,18 @@ class _JadwalPage extends State<JadwalPage> {
     );
   }
 }
-void main(List<String> arguments) async {
-  var url =
-  Uri.https('www.googleapis.com', '/books/v1/volumes', {'q': '{http}'});
-
-  // Await the http get response, then decode the json-formatted response.
-  var response = await http.get(url);
-  if (response.statusCode == 200) {
-    var jsonResponse =
-    convert.jsonDecode(response.body) as Map<String, dynamic>;
-    var itemCount = jsonResponse['totalItems'];
-    print('Number of books about http: $itemCount.');
-  } else {
-    print('Request failed with status: ${response.statusCode}.');
-  }
-}
+// void main(List<String> arguments) async {
+//   var url =
+//   Uri.https('www.googleapis.com', '/books/v1/volumes', {'q': '{http}'});
+//
+//   // Await the http get response, then decode the json-formatted response.
+//   var response = await http.get(url);
+//   if (response.statusCode == 200) {
+//     var jsonResponse =
+//     convert.jsonDecode(response.body) as Map<String, dynamic>;
+//     var itemCount = jsonResponse['totalItems'];
+//     print('Number of books about http: $itemCount.');
+//   } else {
+//     print('Request failed with status: ${response.statusCode}.');
+//   }
+// }

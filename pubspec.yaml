@@ -17,6 +17,9 @@ dependencies:
   sleek_circular_slider: ^2.0.1
   http: ^1.2.1
   dio: ^5.4.3+1
+  shared_preferences: ^2.2.3
+  flutter_time_picker_spinner: ^2.0.0
+  time_picker_spinner: ^0.0.1
 
 dev_dependencies:
   flutter_test:

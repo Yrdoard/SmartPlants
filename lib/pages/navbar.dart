@@ -33,15 +33,15 @@ class _NavBarState extends State<NavBar>{
               selectedIndex = index;
             });
           },
-          destinations: [
+          destinations: const[
             NavigationDestination(
-              selectedIcon: Icon(Icons.home,color: Theme.of(context).primaryColor),
-              icon: const Icon(Icons.home_outlined,color: Colors.grey),
+              selectedIcon: Icon(Icons.home_outlined,color: Color.fromARGB(255, 0, 111, 18)),
+              icon: Icon(Icons.home_outlined,color: Colors.grey),
               label: 'Beranda',
             ),
             NavigationDestination(
-              selectedIcon: Icon(Icons.date_range,color: Theme.of(context).primaryColor),
-              icon: const Icon(Icons.date_range_outlined,color: Colors.grey),
+              selectedIcon: Icon(Icons.date_range_outlined,color: Color.fromARGB(255, 0, 111, 18)),
+              icon: Icon(Icons.date_range_outlined,color: Colors.grey),
               label:'Jadwal',
             ),
           ],

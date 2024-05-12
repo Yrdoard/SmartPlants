@@ -166,7 +166,8 @@ class _HomePageState extends State<HomePages> {
                            child: Column(
                              children: [
                                const Icon(Icons.add,size: 36,),
-                               Text('Pilih Perangkat',style: Theme.of(context).textTheme.headline2,)
+                               Text('Pilih Perangkat',
+                                 style: TextStyle(color: Color.fromARGB(255, 103, 239, 108), fontSize: 11, fontWeight: FontWeight.w500,),)
                              ],
                            ),
                          ),
