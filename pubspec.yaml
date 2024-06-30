@@ -11,15 +11,13 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
-  flutter_native_splash: ^2.3.11
+  flutter_native_splash: ^2.4.0
   syncfusion_flutter_gauges: ^25.1.35
   go_router: ^13.2.2
   sleek_circular_slider: ^2.0.1
   http: ^1.2.1
-  dio: ^5.4.3+1
-  shared_preferences: ^2.2.3
-  flutter_time_picker_spinner: ^2.0.0
   time_picker_spinner: ^0.0.1
+  shared_preferences: ^2.0.10
 
 dev_dependencies:
   flutter_test:
@@ -29,13 +27,12 @@ dev_dependencies:
 
 
 flutter_native_splash:
-  color: "#FFFFFF"
   image: "assets/icon/logo.png"
+  color: "#FFFFFF"
   android: true
   android_12:
-    color: "#FFFFFF"
     image: "assets/icon/logo.png"
-    icon_background_color: "#FFFFFF"
+    color: "#FFFFFF"
 
 
 flutter_launcher_icons:
